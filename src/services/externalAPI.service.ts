@@ -82,48 +82,51 @@ class ApiService {
      */
     filterResponses(response: PaginatedResponse, filters: FilterClauseType[], pageOptions: PageOptions): PaginatedResponse {
         // Apply filters
-        const filteredResponses = response.responses
-            .map((responseItem) => {
-                const filteredQuestions: QuestionType[] = responseItem.questions
-                    .filter((question) => {
-                        return filters.some((filter) => {
-                            if (question.id === filter.id) {
-                                switch (filter.condition) {
-                                    case FilterCondition.Equals:
-                                        return question.value === filter.value;
-                                    case FilterCondition.DoesNotEqual:
-                                        return question.value !== filter.value;
-                                    case FilterCondition.GreaterThan:
-                                        return Number(question.value) > Number(filter.value);
-                                    case FilterCondition.LessThan:
-                                        return Number(question.value) < Number(filter.value);
-                                    default:
-                                        return false;
+        if (filters && filters.length > 0) {
+            const filteredResponses = response.responses
+                .map((responseItem) => {
+                    const filteredQuestions: QuestionType[] = responseItem.questions
+                        .filter((question) => {
+                            return filters.some((filter) => {
+                                if (question.id === filter.id) {
+                                    switch (filter.condition) {
+                                        case FilterCondition.Equals:
+                                            return question.value === filter.value;
+                                        case FilterCondition.DoesNotEqual:
+                                            return question.value !== filter.value;
+                                        case FilterCondition.GreaterThan:
+                                            return Number(question.value) > Number(filter.value);
+                                        case FilterCondition.LessThan:
+                                            return Number(question.value) < Number(filter.value);
+                                        default:
+                                            return false;
+                                    }
                                 }
-                            }
-                            return false; // Exclude non-matching questions
-                        });
-                    })
-                    .filter((filteredQuestion) => filteredQuestion !== null);
+                                return false; // Exclude non-matching questions
+                            });
+                        })
+                        .filter((filteredQuestion) => filteredQuestion !== null);
 
-                return filteredQuestions.length > 0 ? {
-                    submissionId: responseItem.submissionId,
-                    submissionTime: responseItem.submissionTime,
-                    lastUpdatedAt: responseItem.lastUpdatedAt,
-                    questions: filteredQuestions,
-                    calculations: responseItem.calculations || [],
-                    urlParameters: responseItem.urlParameters || [],
-                    quiz: responseItem.quiz || {},
-                    documents: responseItem.documents || []
-                } : null;
-            })
-            .filter((filteredResponse) => filteredResponse !== null);
+                    return filteredQuestions.length > 0 ? {
+                        submissionId: responseItem.submissionId,
+                        submissionTime: responseItem.submissionTime,
+                        lastUpdatedAt: responseItem.lastUpdatedAt,
+                        questions: filteredQuestions,
+                        calculations: responseItem.calculations || [],
+                        urlParameters: responseItem.urlParameters || [],
+                        quiz: responseItem.quiz || {},
+                        documents: responseItem.documents || []
+                    } : null;
+                })
+                .filter((filteredResponse) => filteredResponse !== null);
 
-        // Flatten the array of arrays into a single array
-        const flatFilteredResponses = [].concat(...filteredResponses);
+            // Flatten the array of arrays into a single array
+            const flatFilteredResponses = [].concat(...filteredResponses);
 
-        // paginating out filtered data.
-        return this.paginatedResponse(pageOptions, flatFilteredResponses)
+            // paginating out filtered data.
+            return this.paginatedResponse(pageOptions, flatFilteredResponses)
+        }
+        return response;
     }
 }
 
